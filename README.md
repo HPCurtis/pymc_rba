@@ -1,2 +1,2 @@
-# pymc_rba
-direct pymc implementation of AFNIs' RBA analysis
+# pymc RBA
+Direct pymc implementation of AFNIs' RBA analysis
