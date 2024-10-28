@@ -2,6 +2,7 @@ import pandas as pd
 import pymc as pm
 import numpy as np
 import bambi as bmb
+import pytensor as pt
 
 FILE_PATH = "https://raw.githubusercontent.com/HPCurtis/Datasets/refs/heads/main/rba.csv"
 df = pd.read_csv(FILE_PATH)
@@ -41,11 +42,12 @@ with pm.Model() as model:
     z_u = pm.Normal('z_u', mu=0, sigma=1, shape=N_subj)
     u = z_u * tau_u
 
-    # Uncentered parameterization for each variable
-    tau_u2 = pm.HalfStudentT("tau_u2", nu=3, sigma=2.5, shape=J)
-    z_u2 = pm.Normal("z_u2", 0, 1, shape=(J, N_ROI))
-    u2_1 = z_u2[0] * tau_u2[0]
-    u2_2 = z_u2[1] * tau_u2[1]
+    z_u2 = pm.Normal('z_u2', 0., 1., shape=(J, N_ROI))
+    tau_u2 =  pm.HalfStudentT().dist("tau_u", nu=3, sigma=2.5, shape=J)
+    chol, corr, stds = pm.LKJCholeskyCov('chol',
+                                        eta=1, n=J,
+                                        sd_dist=tau_u2)
+    u2 = chol.dot(z_u2).T
 
     # Likelihood
     mu = alpha + beta * Xc + u[subj] + u2_1[ROI] + X * u2_2[ROI]
