@@ -2,7 +2,7 @@ import pandas as pd
 import pymc as pm
 import numpy as np
 import bambi as bmb
-import pytensor as pt
+import pytensor.tensor as pt
 
 FILE_PATH = "https://raw.githubusercontent.com/HPCurtis/Datasets/refs/heads/main/rba.csv"
 df = pd.read_csv(FILE_PATH)
@@ -43,17 +43,17 @@ with pm.Model() as model:
     u = z_u * tau_u
 
     z_u2 = pm.Normal('z_u2', 0., 1., shape=(J, N_ROI))
-    tau_u2 =  pm.HalfStudentT().dist("tau_u", nu=3, sigma=2.5, shape=J)
-    chol, corr, stds = pm.LKJCholeskyCov('chol',
+      
+    sd_dist = pm.HalfStudentT.dist(nu=3, sigma=2.5, shape=J)
+    L_u, rho, tau_u2 = pm.LKJCholeskyCov('L_u',
                                         eta=1, n=J,
-                                        sd_dist=tau_u2)
-    u2 = chol.dot(z_u2).T
+                                        sd_dist=sd_dist)
+    u2 = pt.dot(L_u, z_u2).T
 
     # Likelihood
-    mu = alpha + beta * Xc + u[subj] + u2_1[ROI] + X * u2_2[ROI]
-    y = pm.Normal('y', mu = mu, sigma = sigma ,observed=y)
+    mu = alpha + beta * Xc + u[subj] + u2[ROI, 0] + X * u2[ROI, 1]
+    y = pm.Normal('y', mu = mu, sigma = sigma, observed=y)
 
 with model:
-    pm.sample(nuts_sampler="nutpie",
-                      draws=1000, tune=1000, 
-                      chains=4, cores=8, target_accept = .8)
+    pm.sample(nuts_sampler = "numpyro", draws=1000, tune=1000, 
+                      chains=4, cores=4, target_accept = .8)
