@@ -13,7 +13,7 @@ df = pd.read_csv(FILE_PATH)
 # Time model fitting.
 start_time = time.time()
 
-# fit bambi model
+# fit bambi model and time it.
 model = bmb.Model("y ~ x + (1|subject) + (x|ROI)", data=df)
 model.build()
 fitted = model.fit(chains=4,
