@@ -5,12 +5,15 @@ import bambi as bmb
 import pytensor.tensor as pt
 import time
 
+# Import data
 FILE_PATH = "https://raw.githubusercontent.com/HPCurtis/Datasets/refs/heads/main/rba.csv"
 df = pd.read_csv(FILE_PATH)
 
+# Covnert the strings to unique integers. 
 df["roi_int"] = pd.factorize(df["ROI"])[0]
 df["subject_int"] = pd.factorize(df["subject"])[0]
 
+# Specify variables for pymc model.
 y = df.y
 N_ROI = len(np.unique(df.ROI))
 N_subj = len(np.unique(df.subject))
