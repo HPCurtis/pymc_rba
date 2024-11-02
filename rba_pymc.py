@@ -3,6 +3,7 @@ import pymc as pm
 import numpy as np
 import bambi as bmb
 import pytensor.tensor as pt
+import time
 
 FILE_PATH = "https://raw.githubusercontent.com/HPCurtis/Datasets/refs/heads/main/rba.csv"
 df = pd.read_csv(FILE_PATH)
@@ -43,6 +44,12 @@ with pm.Model() as model:
     mu = alpha + beta * Xc + u[subj] + u2[ROI, 0] + X * u2[ROI, 1]
     y = pm.Normal('y', mu = mu, sigma = sigma, observed=y)
 
+start_time = time.time()
+
 with model:
-    pm.sample(nuts_sampler = "numpyro", draws=1000, tune=1000, 
-                      chains=4, cores=4, target_accept = .8)
+    pm.sample(nuts_sampler="nutpie", draws=1000, tune=1000, 
+              chains=4, cores=8, target_accept=0.8)
+
+end_time = time.time()
+
+print(f"Execution time: {end_time - start_time} seconds")
