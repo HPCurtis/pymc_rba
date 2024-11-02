@@ -1,0 +1,21 @@
+Execution time: 72.66212224960327 seconds
+       Formula: y ~ x + (1|subject) + (x|ROI)
+        Family: gaussian
+          Link: mu = identity
+  Observations: 2604
+        Priors: 
+    target = mu
+        Common-level effects
+            Intercept ~ Normal(mu: 0.1681, sigma: 4.6555)
+            x ~ Normal(mu: 0.0, sigma: 0.2741)
+        
+        Group-level effects
+            1|subject ~ Normal(mu: 0.0, sigma: HalfNormal(sigma: 4.6555))
+            1|ROI ~ Normal(mu: 0.0, sigma: HalfNormal(sigma: 4.6555))
+            x|ROI ~ Normal(mu: 0.0, sigma: HalfNormal(sigma: 0.2741))
+        
+        Auxiliary parameters
+            sigma ~ HalfStudentT(nu: 4.0, sigma: 0.2277)
+------
+* To see a plot of the priors call the .plot_priors() method.
+* To see a summary or plot of the posterior pass the object returned by .fit() to az.summary() or az.plot_trace()
