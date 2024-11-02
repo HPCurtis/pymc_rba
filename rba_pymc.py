@@ -4,6 +4,7 @@ import numpy as np
 import bambi as bmb
 import pytensor.tensor as pt
 import time
+import os
 
 # Import data
 FILE_PATH = "https://raw.githubusercontent.com/HPCurtis/Datasets/refs/heads/main/rba.csv"
@@ -49,8 +50,10 @@ with pm.Model() as model:
     mu = alpha + beta * Xc + u[subj] + u2[ROI, 0] + X * u2[ROI, 1]
     y = pm.Normal('y', mu = mu, sigma = sigma, observed=y)
     
-fig = pm.model_to_graphviz(model)
-fig.render("model_graph_pymx", format= "png")
+if not os.path.exists("model_graph_pymc.png"):
+    fig = pm.model_to_graphviz(model)
+    fig.render("model_graph_pymx", format="png")
+    
 
 # Time model fitting.
 start_time = time.time()

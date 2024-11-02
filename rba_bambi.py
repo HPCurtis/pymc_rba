@@ -4,6 +4,7 @@ import numpy as np
 import bambi as bmb
 import bayeux as bx
 import time
+import os
 
 # Import data
 FILE_PATH = "https://raw.githubusercontent.com/HPCurtis/Datasets/refs/heads/main/rba.csv"
@@ -23,7 +24,8 @@ end_time = time.time()
 
 print(f"Execution time: {end_time - start_time} seconds")
 
-fig = model.graph()
-fig.render(filename="model_bambi_graph", format="png")
+if not os.path.exists("model_bambi_graph.png"):
+    fig = model.graph()
+    fig.render(filename="model_bambi_graph", format="png")
 
 print(model)
