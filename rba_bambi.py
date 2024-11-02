@@ -15,10 +15,15 @@ start_time = time.time()
 # fit bambi model
 model = bmb.Model("y ~ x + (1|subject) + (x|ROI)", data=df)
 model.build()
-fitted = model.fit(tune=1000, 
-                   draws=1000, 
-                   chains=4, 
-                   inference_method="numpyro_nuts")
+fitted = model.fit(chains=4,
+                   draws=1000,
+                   tune=1000, 
+                   inference_method="nutpie")
 end_time = time.time()
 
 print(f"Execution time: {end_time - start_time} seconds")
+
+fig = model.graph()
+fig.render(filename="model_bambi_graph", format="png")
+
+print(model)

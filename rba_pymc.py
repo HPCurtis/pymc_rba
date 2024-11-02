@@ -19,7 +19,7 @@ N_ROI = len(np.unique(df.ROI))
 N_subj = len(np.unique(df.subject))
 ROI =  df.roi_int.values
 subj = df.subject_int.values
-Xc = (df.x - np.mean(df.x))
+Xc = (df.x.values - np.mean(df.x.values))
 X = df.x.values
 J = 2
 
@@ -27,27 +27,30 @@ J = 2
 with pm.Model() as model:
 
     # Intercept (alpha) and beta (fixed) distribution
-    alpha = pm.StudentT("alpha", nu = 3, mu=0, sigma=2.5)
-    beta = pm.Normal("beta", mu=0, sigma=10)
-    sigma = pm.HalfStudentT("sigma",nu=3, sigma=2.5)
+    alpha = pm.Normal("alpha", mu=0.17, sigma=4.66)
+    beta = pm.Normal("beta", mu=0, sigma=0.27)
+    sigma = pm.HalfStudentT("sigma",nu=4, sigma=2.3)
 
     # Subjct random intercept.
-    tau_u = pm.HalfStudentT("tau_u", nu=3, sigma=2.5)
+    tau_u = pm.HalfNormal("tau_u", sigma=4.66)
     z_u = pm.Normal('z_u', mu=0, sigma=1, shape=N_subj)
-    u = z_u * tau_u
+    u = pm.Deterministic("u", z_u * tau_u)
 
     # Randomintecept and slope correlated.
     z_u2 = pm.Normal('z_u2', 0., 1., shape=(J, N_ROI))
       
-    sd_dist = pm.HalfStudentT.dist(nu=3, sigma=2.5, shape=J)
+    sd_dist = pm.HalfNormal.dist(sigma=[4.66,0.27], shape=J)
     L_u, rho, tau_u2 = pm.LKJCholeskyCov('L_u',
                                         eta=1, n=J,
                                         sd_dist=sd_dist)
-    u2 = pt.dot(L_u, z_u2).T
+    u2 = pm.Deterministic("u2", pt.dot(L_u, z_u2).T)
 
     # Likelihood
     mu = alpha + beta * Xc + u[subj] + u2[ROI, 0] + X * u2[ROI, 1]
     y = pm.Normal('y', mu = mu, sigma = sigma, observed=y)
+    
+fig = pm.model_to_graphviz(model)
+fig.render("model_graph_pymx", format= "png")
 
 # Time model fitting.
 start_time = time.time()
