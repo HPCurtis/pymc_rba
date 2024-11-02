@@ -1,64 +1,54 @@
 import numpy as np
 import pandas as pd
 
-#create voxel noise parameters
-noise_list = []
-for i in range(0,1000): #hardcoded
-    mean =  np.random.normal(0, .08) #voxel noise paramerer - normal distribution
-    sd =  abs(np.random.normal(0, .05)) #voxel noise paramerer - uniform distribution or absolute normal distribution
-    noise_list.append([mean, sd])
+# Parameters for the simulation
+num_subjects = 16    # Number of subjects
+num_rois = 14752       # Number of regions of interest (ROI)
+num_observations = 1  # Number of observations per subject-ROI combination
 
-#define function to generate random voxel values
-def generate_random_voxels(mean, sd, noise_list, length=1000): #hardcoded
-    voxels = []
-    for v in range(length):
-        mean = mean + noise_list[v][0]
-        sd = sd + noise_list[v][1]
-        voxels.append(np.random.normal(mean,sd)) #mean 0, std 1
-    return voxels
+# Fixed effect for x
+beta_0 = 2.0             # Overall intercept
+beta_1 = 0.5             # Fixed effect of x (effect size for dummy variable)
 
-participants = []
-conditions = []
+# Random effect variances
+subject_intercept_sd = 0.5  # Random intercept variance for subjects
+roi_intercept_sd = 0.3      # Random intercept variance for ROI
+roi_slope_sd = 0.2          # Random slope variance for ROI on x
+residual_sd = 1.0           # Residual (error) standard deviation
 
-#create multi level index matrix
-for i in range(30):
-    participants.append(i)
-    participants.append(i)
-    conditions.append(0)
-    conditions.append(1)
-arrays = [participants, conditions]
-tuples = list(zip(*arrays))
-multi_index = pd.MultiIndex.from_tuples(tuples, names=["participant", "condition"])
+# Simulate data
+data = []
 
-#initiate voxel list
-data = np.zeros((60,1000)) #hardcoded
-df = pd.DataFrame(data, index = multi_index)
+# Assign a consistent binary value for x to each subject (e.g., 0 or 1 for "gender")
+subject_x = np.random.choice([0, 1], num_subjects)  # Randomly assign 0 or 1 to each subject
 
-#populate the multi level index matrix
-for participant in range(30):
-    # unique number for each paritipcant
-    random_effect_mean = np.random.normal(0, .1)
-    random_effect_sd = abs(np.random.normal(0, .05))
-    
-    for condition in range(2):
-        if condition == 0:
-            mean = .5 + random_effect_mean
-            sd = .1 + random_effect_sd
-            df.loc[participant, condition] = generate_random_voxels(mean,sd,noise_list)
-            
-        if condition == 1:
-            mean = .3 + random_effect_mean
-            sd = .1 + random_effect_sd
-            df.loc[participant, condition] = generate_random_voxels(mean,sd,noise_list)
+# Generate random effects for subjects and ROIs
+subject_intercepts = np.random.normal(0, subject_intercept_sd, num_subjects)
+roi_intercepts = np.random.normal(0, roi_intercept_sd, num_rois)
+roi_slopes = np.random.normal(0, roi_slope_sd, num_rois)
 
+# Simulate the observations
+for subject in range(num_subjects):
+    x = subject_x[subject]  # Get the fixed value of x for this subject
+    subject_effect = subject_intercepts[subject]
 
-#melt to satisfy bambi long form
-df = pd.melt(df, ignore_index=False, var_name="voxel_id", value_name = "BOLD")
+    for roi in range(num_rois):
+        roi_intercept = roi_intercepts[roi]
+        roi_slope = roi_slopes[roi]
+
+        # Generate multiple observations per subject-ROI pair
+        for _ in range(num_observations):
+            # Calculate y using the mixed-effects model structure
+            y = (beta_0 + beta_1 * x +
+                 subject_effect +       # Random intercept for subject
+                 roi_intercept +        # Random intercept for ROI
+                 roi_slope * x +        # Random slope for ROI on x
+                 np.random.normal(0, residual_sd))  # Residual noise
+
+            data.append([subject, roi, x, y])
+
+# Convert data to a DataFrame
+df = pd.DataFrame(data, columns=["subject", "roi", "x", "y"])
 
 #write to csv
-df.to_csv(r'df2.csv', sep=',')
-
-
-
-
-
+df.to_csv(r'df2.csv', sep=',', index=False)
