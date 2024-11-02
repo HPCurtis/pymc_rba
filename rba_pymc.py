@@ -15,21 +15,10 @@ N_ROI = len(np.unique(df.ROI))
 N_subj = len(np.unique(df.subject))
 ROI =  df.roi_int.values
 subj = df.subject_int.values
-Xc = (df.x - np.mean(df.x)) / np.std(df.x)
+Xc = (df.x - np.mean(df.x))
 X = df.x.values
 J = 2
 
-"""
-# Horrible slow on cpu take huge time compared to my implementation.
-model = bmb.Model("y ~ x + (1|subject) + (x|ROI)", data=df)
-fitted = model.fit(tune=1000, 
-                   draws=1000, 
-                   chains=4, 
-                   method='numpyro_nuts',
-                   nuts_kwargs=dict(max_tree_depth=100)
-                   )
-
-"""
 with pm.Model() as model:
 
     # Intercept (alpha) and beta (fixed) distribution
