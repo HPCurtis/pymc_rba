@@ -23,7 +23,7 @@ Xc = (df.x.values - np.mean(df.x.values))
 X = df.x.values
 J = 2
 
-# RBA model follwing the bambi syntax y ~ x + (1|subject) + (x|ROI) but with correlted slopes"
+# RBA model follwing the bambi syntax y ~ x + (1|subject) + (x|ROI) but with correlated slopes"
 with pm.Model() as model:
 
     # Intercept (alpha) and beta (fixed) distribution
