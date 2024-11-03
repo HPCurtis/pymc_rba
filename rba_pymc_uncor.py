@@ -38,23 +38,20 @@ with pm.Model() as model:
     u = pm.Deterministic("u", z_u * tau_u)
 
     # Randomintecept and slope correlated.
-    z_u2 = pm.Normal('z_u2', 0., 1., shape=(J, N_ROI))
+    z_u2 = pm.Normal('z_u2', 0., 1., shape=(N_ROI, J))
       
-    sd_dist = pm.HalfNormal.dist(sigma=[4.66,0.27], shape=J)
-    L_u, rho, tau_u2 = pm.LKJCholeskyCov('L_u',
-                                        eta=1, n=J,
-                                        sd_dist=sd_dist)
-    u2 = pm.Deterministic("u2", pt.dot(L_u, z_u2).T)
+    tau_u2 = pm.HalfNormal("tau_u", sigma=4.66, shape= J)
+    u2_int = pm.Deterministic("u2_int", z_u2[:,0] * tau_u2[0])
+    u2_slope = pm.Deterministic("u2_slope", z_u2[:,1] * tau_u2[1])
 
     # Likelihood
-    mu = alpha + beta * Xc + u[subj] + u2[ROI, 0] + X * u2[ROI, 1]
+    mu = alpha + beta * Xc + u[subj] + u2_int[ROI, 0] + X * u2_slope[ROI, 1]
     y = pm.Normal('y', mu = mu, sigma = sigma, observed=y)
     
-if not os.path.exists("model_graph_pymc.png"):
+if not os.path.exists("model_graph_pymc_uncor.png"):
     fig = pm.model_to_graphviz(model)
-    fig.render("model_graph_pymc", format="png")
+    fig.render("model_graph_pymc_uncor", format="png")
     
-
 # Time model fitting.
 start_time = time.time()
 
