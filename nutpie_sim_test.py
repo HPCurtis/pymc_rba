@@ -4,6 +4,7 @@ import numpy as np
 import bambi as bmb
 import pytensor.tensor as pt
 import time
+import arviz as az
 import os
 
 # Import data
@@ -41,9 +42,11 @@ with pm.Model() as model:
     z_u2 = pm.Normal('z_u2', 0., 1., shape=(J, N_ROI))
       
     sd_dist = pm.HalfNormal.dist(sigma=[4.66,0.27], shape=J)
-    L_u, rho, tau_u2 = pm.LKJCholeskyCov('L_u',
+    L_u, rho, tau_sd = pm.LKJCholeskyCov('L_u',
                                         eta=1, n=J,
                                         sd_dist=sd_dist)
+    
+    tau_u2 = pm.Deterministic("tau_u2", tau_sd)
     u2 = pm.Deterministic("u2", pt.dot(L_u, z_u2).T)
 
     # Likelihood
@@ -55,10 +58,12 @@ start_time = time.time()
 
 with model:
     # Fit nutpie model for fastest cpu performance.
-    pm.sample(nuts_sampler="nutpie", draws=1000, tune=1000, 
+    fit = pm.sample(nuts_sampler="nutpie", draws=1000, tune=1000, 
               chains=4, cores=4, target_accept=0.8)
 
 end_time = time.time()
 
-# Time taken = 156 seconds. 
+# Time taken  
 print(f"Execution time: {end_time - start_time} seconds")
+
+print(az.summary(fit, var_names = ["alpha", "beta", "sigma", "tau_u", "tau_u2"]  ))

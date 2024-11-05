@@ -3,6 +3,7 @@ import pymc as pm
 import numpy as np
 import bambi as bmb
 import pytensor.tensor as pt
+import arviz as az
 import time
 import os
 
@@ -57,9 +58,11 @@ start_time = time.time()
 
 with model:
     # Fit nutpie model for fastest cpu performance.
-    pm.sample(nuts_sampler="nutpie", draws=1000, tune=1000, 
+    fit = pm.sample(nuts_sampler="nutpie", draws=1000, tune=1000, 
               chains=4, cores=4, target_accept=0.8)
 
 end_time = time.time()
  
 print(f"Execution time: {end_time - start_time} seconds")
+
+print(az.summary(fit, var_names = ["alpha", "beta", "sigma", "tau_u", "tau_u2"] ))
