@@ -40,12 +40,12 @@ with pm.Model() as model:
     # Randomintecept and slope correlated.
     z_u2 = pm.Normal('z_u2', 0., 1., shape=(N_ROI, J))
       
-    tau_u2 = pm.HalfNormal("tau_u", sigma=4.66, shape= J)
+    tau_u2 = pm.HalfNormal("tau_u2", sigma=4.66, shape= J)
     u2_int = pm.Deterministic("u2_int", z_u2[:,0] * tau_u2[0])
     u2_slope = pm.Deterministic("u2_slope", z_u2[:,1] * tau_u2[1])
 
     # Likelihood
-    mu = alpha + beta * Xc + u[subj] + u2_int[ROI, 0] + X * u2_slope[ROI, 1]
+    mu = alpha + beta * Xc + u[subj] + u2_int[ROI] + X * u2_slope[ROI]
     y = pm.Normal('y', mu = mu, sigma = sigma, observed=y)
     
 if not os.path.exists("model_graph_pymc_uncor.png"):
@@ -58,8 +58,8 @@ start_time = time.time()
 with model:
     # Fit nutpie model for fastest cpu performance.
     pm.sample(nuts_sampler="nutpie", draws=1000, tune=1000, 
-              chains=4, cores=8, target_accept=0.8)
+              chains=4, cores=4, target_accept=0.8)
 
 end_time = time.time()
-
+ 
 print(f"Execution time: {end_time - start_time} seconds")
