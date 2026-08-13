@@ -1,5 +1,5 @@
 # PyMC RBA
-The following repo is a Direct PyMC implementation of AFNI's region Based analysis (RBA) analysis.
+The following repo is a direct PyMC implementation of AFNI's region Based analysis (RBA) analysis.
 
 This repo is inspired by a project that I was privy too at OHBM hackathon 2022 (for which at the time I did not have the technical skills or confidence to assist that much with) that was inspired by the the AFNI group reasearcher Gang Chen who implemented Bayesian multilevel modelling for region based analysis with the use Brms Bürkner (2021) and the [RBA.R programme](https://github.com/afni/afni/blob/master/src/R_scripts/RBA.R) who initially wanted to implement the programme through pybrms [see](https://github.com/adamhaber/pybrms). Unforutnately there is no active support of pybrms. As such the project was taken away by a group of researchers and taken to end state using a PyMC-labs Bambi implementation (Abril-Pla et al. 2023). This allowed for an ease of use to the end users and the option for variety of modern inference algorithms with GPU utilities with use of Googles jax auto-diff library.
 
